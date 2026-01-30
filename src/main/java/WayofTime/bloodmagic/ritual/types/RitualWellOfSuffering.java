@@ -44,6 +44,10 @@ public class RitualWellOfSuffering extends Ritual {
             return;
         }
 
+        if (!isTpsAcceptable()) {
+            return;
+        }
+
         BlockPos pos = masterRitualStone.getBlockPos();
 
         int maxEffects = currentEssence / getRefreshCost();
@@ -132,4 +136,22 @@ public class RitualWellOfSuffering extends Ritual {
     public Ritual getNewCopy() {
         return new RitualWellOfSuffering();
     }
+
+    private static boolean isTpsAcceptable() {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        if (server == null) {
+            return true;
+        }
+        long[] tickTimes = server.tickTimeArray;
+        if (tickTimes == null || tickTimes.length == 0) {
+            return true;
+        }
+        double mspt = MathHelper.average(tickTimes) * 1.0E-6D;
+        if (mspt <= 0.0D) {
+            return true;
+        }
+        double tps = Math.min(1000.0D / mspt, 20.0D);
+        return tps >= 16.0D;
+    }
+
 }
