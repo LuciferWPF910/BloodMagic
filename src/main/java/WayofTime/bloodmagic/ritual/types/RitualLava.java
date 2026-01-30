@@ -69,6 +69,10 @@ public class RitualLava extends Ritual {
             return;
         }
 
+        if (!isTpsAcceptable()) {
+            return;
+        }
+
         BlockPos pos = masterRitualStone.getBlockPos();
         List<EnumDemonWillType> willConfig = masterRitualStone.getActiveWillConfig();
 
@@ -220,7 +224,7 @@ public class RitualLava extends Ritual {
 
     @Override
     public int getRefreshTime() {
-        return 1;
+        return 5;
     }
 
     @Override
@@ -293,5 +297,22 @@ public class RitualLava extends Ritual {
 
     public double getWillCostForRawWill(double raw) {
         return Math.min(1, raw / 500);
+    }
+
+    private static boolean isTpsAcceptable() {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        if (server == null) {
+            return true;
+        }
+        long[] tickTimes = server.tickTimeArray;
+        if (tickTimes == null || tickTimes.length == 0) {
+            return true;
+        }
+        double mspt = MathHelper.average(tickTimes) * 1.0E-6D;
+        if (mspt <= 0.0D) {
+            return true;
+        }
+        double tps = Math.min(1000.0D / mspt, 20.0D);
+        return tps >= 16.0D;
     }
 }
