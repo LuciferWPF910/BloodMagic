@@ -36,7 +36,7 @@ public class RitualFeatheredKnife extends Ritual {
     public static double corrosiveWillThreshold = 10;
     public static double steadfastWillThreshold = 10;
     public static double vengefulWillThreshold = 10;
-    public static int defaultRefreshTime = 20;
+    public static int defaultRefreshTime = 40;
     public int refreshTime = 20;
     public BlockPos altarOffsetPos = new BlockPos(0, 0, 0); //TODO: Save!
 
@@ -56,6 +56,10 @@ public class RitualFeatheredKnife extends Ritual {
 
         if (currentEssence < getRefreshCost()) {
             masterRitualStone.getOwnerNetwork().causeNausea();
+            return;
+        }
+
+        if (!isTpsAcceptable()) {
             return;
         }
 
@@ -216,5 +220,27 @@ public class RitualFeatheredKnife extends Ritual {
         }
 
         return defaultRefreshTime;
+    }
+
+    // [ LUCI CODE ]
+    // ADDED TPS CHECK FOR SERVERS AS THIS WILL HELP DURING SPIKES AND THE OVERHEAD IS TINY.
+    private static boolean isTpsAcceptable() {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        if (server == null) {
+            return true;
+        }
+        long totalTime = 0L;
+        for (long time : server.tickTimeArray) {
+            totalTime += time;
+        }
+        if (totalTime <= 0L) {
+            return true;
+        }
+        double avgMs = totalTime / 100.0 / 1000000.0;
+        double tps = 1000.0 / avgMs;
+        if (tps > 20.0) {
+            tps = 20.0;
+        }
+        return tps >= 16.0;
     }
 }
